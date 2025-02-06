@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Automated Attendance System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: hsl(147, 80%, 52%);
+            color: white;
+            padding: 10px 0;
+            width: 100%;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-top: 60px; /* Add margin to avoid overlap with the fixed header */
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+            width: 100%;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+        }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .back-button {
+            margin-top: 10px;
+            background-color: #6c757d;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+        .success {
+            color: green;
+            font-size: 14px;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007BFF;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .dashboard-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        .logout-button {
+            margin-top: 10px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+        .logout-button:hover {
+            background-color: #c82333;
+        }
+
+        /* Icon Container */
+        .icon-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .icon-item {
+            text-align: center;
+            padding: 15px;
+            background-color: hsl(61, 85%, 52%);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .icon-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .icon-item i {
+            font-size: 2rem;
+            color: hsl(0, 84%, 45%);
+            margin-bottom: 10px;
+        }
+
+        .icon-item p {
+            font-size: 1rem;
+            color: #333;
+            margin: 0;
+        }
+
+        /* Profile Picture Styles */
+        .profile-picture-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .profile-picture-preview {
+            margin: 10px auto;
+            width: 100px;
+            height: 100px;
+            border: 2px dashed #ccc;
+            border-radius: 50%;
+            background-color: #f9f9f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .profile-picture-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .profile-picture-preview p {
+            margin: 0;
+            color: #888;
+            font-size: 14px;
+        }
+
+        #profilePicture {
+            display: none;
+        }
+
+        /* Semester Units Table */
+        .units-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        .units-table th,
+        .units-table td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+
+        .units-table th {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .units-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .units-table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Attendance Table */
+        .attendance-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        .attendance-table th,
+        .attendance-table td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+
+        .attendance-table th {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .attendance-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .attendance-table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .attendance-table input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        /* Dark Mode Toggle Button */
+        #darkModeToggle {
+            padding: 5px 10px;
+            font-size: 1rem;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            position: absolute;
+            left: 10px;
+            bottom: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        #darkModeToggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* Dark Mode Styles */
+        body[data-theme="dark"] {
+            background-color: #333;
+            color: #fff;
+        }
+
+        body[data-theme="dark"] header {
+            background-color: #222;
+        }
+
+        body[data-theme="dark"] footer {
+            background-color: #111;
+        }
+
+        body[data-theme="dark"] .button-container,
+        body[data-theme="dark"] .dashboard-container,
+        body[data-theme="dark"] .student-profile-page,
+        body[data-theme="dark"] .lecturers-profile-page,
+        body[data-theme="dark"] .attendance-page {
+            background-color: #444;
+            color: #fff;
+        }
+
+        body[data-theme="dark"] button {
+            background-color: #555;
+            color: #fff;
+        }
+
+        body[data-theme="dark"] button:hover {
+            background-color: #666;
+        }
+
+        body[data-theme="dark"] .icon-item {
+            background-color: #555;
+        }
+
+        body[data-theme="dark"] .icon-item p {
+            color: #fff;
+        }
+
+        body[data-theme="dark"] .units-table th,
+        body[data-theme="dark"] .attendance-table th {
+            background-color: #555;
+        }
+
+        body[data-theme="dark"] .units-table tr:nth-child(even),
+        body[data-theme="dark"] .attendance-table tr:nth-child(even) {
+            background-color: #666;
+        }
+
+        body[data-theme="dark"] .units-table tr:hover,
+        body[data-theme="dark"] .attendance-table tr:hover {
+            background-color: #777;
+        }
+
+        /* Smaller Buttons */
+        .small-button {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        /* Center QR Code */
+        .qr-code-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Page -->
+    <div id="mainPage">
+        <header>
+            <h1>Welcome to Digital System</h1>
+            <button id="darkModeToggle" onclick="toggleDarkMode()">🌙</button>
+        </header>
+        <main>
+            <div class="button-container">
+                <button onclick="showPage('registerPage')">Register</button>
+                <button onclick="showPage('loginPage')">Login</button>
+                <button onclick="showPage('forgotPage')">Forgot Password</button>
+            </div>
+        </main>
+        <footer>
+            <p>@2025. All Rights Reserved</p>
+        </footer>
+    </div>
+
+    <!-- Register Page -->
+    <div id="registerPage" style="display: none;">
+        <header>
+            <h1>Register</h1>
+        </header>
+        <main>
+            <div class="form-container">
+                <form id="registerForm">
+                    <input type="text" id="username" placeholder="Username" required>
+                    <input type="password" id="password" placeholder="Password" required>
+                    <p class="error" id="registerErrorMessage"></p>
+                    <p class="success" id="registerSuccessMessage"></p>
+                    <button type="submit" id="registerSubmitButton">Register</button>
+                    <div id="registerLoader" class="loader" style="display: none;"></div>
+                </form>
+                <button class="back-button" onclick="showPage('mainPage')">Back</button>
+            </div>
+        </main>
+        <footer>
+            <p>@2025. All Rights Reserved</p>
+        </footer>
+    </div>
+
+    <!-- Login Page -->
+    <div id="loginPage" style="display: none;">
+        <header>
+            <h1>Login</h1>
+        </header>
+        <main>
+            <div class="form-container">
+                <form id="loginForm">
+                    <input type="text" id="loginUsername" placeholder="Username" required>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                    <label>
+                        <input type="checkbox" id="rememberMe"> Remember Me
+                    </label>
+                    <p class="error" id="loginErrorMessage"></p>
+                    <p class="success" id="loginSuccessMessage"></p>
+                    <button type="submit" id="loginSubmitButton">Login</button>
+                    <div id="loginLoader" class="loader" style="display: none;"></div>
+                </form>
+                <button class="back-button" onclick="showPage('mainPage')">Back</button>
+            </div>
+        </main>
+        <footer>
+            <p>@2025. All Rights Reserved</p>
+        </footer>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboardPage" style="display: none;">
+        <header>
+            <h1>Dashboard</h1>
+        </header>
+        <main>
+            <div class="dashboard-container">
+                <h2>Welcome, <span id="dashboardUsername"></span>!</h2>
+                
+                <!-- Icons Section -->
+                <div class="icon-container">
+                    <div class="icon-item" onclick="showPage('studentProfilePage')">
+                        <i class="fas fa-users"></i>
+                        <p>Student Profile</p>
+                    </div>
+                    <div class="icon-item" onclick="showPage('lecturersProfilePage')">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <p>Lecturers Profile</p>
+                    </div>
+                    <div class="icon-item" onclick="showUnitsTable()">
+                        <i class="fas fa-table"></i>
+                        <p>Semester Units/Lessons</p>
+                    </div>
+                    <div class="icon-item" onclick="showPage('attendancePage')">
+                        <i class="fas fa-check"></i>
+                        <p>Attendance Page</p>
+                    </div>
+                </div>
+
+                <!-- Semester Units Table -->
+                <div id="unitsTableContainer" style="display: none;">
+                    <table class="units-table">
+                        <thead>
+                            <tr>
+                                <th>Unit Code</th>
+                                <th>Unit Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>IT101</td>
+                                <td>IT Project Management</td>
+                            </tr>
+                            <tr>
+                                <td>MATH101</td>
+                                <td>Calculus 1</td>
+                            </tr>
+                            <tr>
+                                <td>STAT101</td>
+                                <td>Probability</td>
+                            </tr>
+                            <tr>
+                                <td>ACC101</td>
+                                <td>Accounting</td>
+                            </tr>
+                            <tr>
+                                <td>IT102</td>
+                                <td>IT Fundamentals</td>
+                            </tr>
+                            <tr>
+                                <td>WEB101</td>
+                                <td>Web Programming</td>
+                            </tr>
+                            <tr>
+                                <td>NET101</td>
+                                <td>Networking</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Logout and Back Buttons -->
+                <button class="logout-button" onclick="logout()">Logout</button>
+                <button class="back-button" onclick="showPage('loginPage')" style="margin-top: 10px;">Back to Login</button>
+            </div>
+        </main>
+        <footer>
+            <p>@2025. All Rights Reserved</p>
+        </footer>
+    </div>
+
+    <!-- Student Profile Page -->
+    <div id="studentProfilePage" style="display: none;">
+        <header>
+            <h1>Student Profile</h1>
+        </header>
+        <main>
+            <div class="student-profile-page">
+                <form id="studentProfileForm">
+                    <!-- Profile Picture Upload -->
+                    <div class="profile-picture-container">
+                        <div id="profilePicturePreview" class="profile-picture-preview" onclick="document.getElementById('profilePicture').click()">
+                            <img id="profilePictureDisplay" src="" alt="Profile Picture" style="display: none;">
+                            <p id="profilePicturePlaceholder">Click to upload</p>
+                        </div>
+                        <input type="file" id="profilePicture" accept="image/*" onchange="previewProfilePicture(event)">
+                    </div>
+
+                    <!-- Other Form Fields -->
+                    <input type="text" id="studentName" placeholder="Name" required>
+                    <input type="text" id="registrationNumber" placeholder="Registration Number" required>
+                    <input type="number" id="age" placeholder="Age" required>
+                    <input type="tel" id="phoneNumber" placeholder="Phone Number" required>
+                    <input type="email" id="email" placeholder="Email" required>
+                    <input type="number" id="yearOfStudy" placeholder="Year of Study" required>
+                    <input type="number" id="year" placeholder="Year" required>
+                    <button type="submit" class="small-button">Save</button>
+                </form>
+                <button class="back-button small-button" onclick="showPage('dashboardPage')">Back to Dashboard</button>
+            </div>
+        </main>
+        <footer>
+            <p>@2025. All Rights Reserved</p>
+        </footer>
+    </div>
+
+    <!-- Lecturers Profile Page -->
+    <div id="lecturersProfilePage" style="display: none;">
+        <header>
+            <h1>Lecturers Profile</h1>
+        </header>
+        <main>
+            <div class="lecturers-profile-page">
+                <form id="lecturersProfileForm">
+                    <input type="text" id="lecturerName" placeholder="Name" required>
+                    <input type="text" id="lecturerId" placeholder="Lecturer ID" required>
+                    <input type="text" id="department" placeholder="Department" required>
+                    <input type="email" id="lecturerEmail" placeholder="Email" required>
+                    <button type="submit" class="small-button">Save</button>
+                </form>
+                <div class="qr-code-container">
+                    <div id="qrCodeContainer"></div>
+                </div>
+                <button onclick="generateQRCode()" class="small-button">Generate QR Code</button>
+                <button class="back-button small-button" onclick="showPage('dashboardPage')">Back to Dashboard</button>
+            </div>
+        </main>
+        <footer>
+            <p>@2025. All Rights Reserved</p>
+        </footer>
+    </div>
+
+    <!-- Attendance Page -->
+    <div id="attendancePage" style="display: none;">
+        <header>
+            <h1>Attendance Page</h1>
+        </header>
+        <main>
+            <div class="attendance-page">
+                <h2>Mark Attendance</h2>
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Registration Number</th>
+                            <th>Date</th>
+                            <th>Present</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Example of 50 students -->
+                        <tr>
+                            <td>Caleb Osiango</td>
+                            <td>BTIT/743J/2021</td>
+                            <td>2025-02-07</td>
+                            <td><input type="checkbox"></td>
+                        </tr>
+                        <tr>
+                            <td>Jane Odhiambo</td>
+                            <td>BSIT/721J/2021</td>
+                            <td>2025-02-07</td>
+                            <td><input type="checkbox"></td>
+                        </tr>
+                        <tr>
+                            <td>Ann Para</td>
+                            <td>BBIT/504J/2021</td>
+                            <td>2025-02-07</td>
+                            <td><input type="checkbox"></td>
+                        </tr>
+                        <!-- Add more rows here -->
+                        <!-- Example: Repeat the above structure for 50 students -->
+                        <!-- You can dynamically generate this list using JavaScript if needed -->
+                    </tbody>
+                </table>
+                <button class="back-button small-button" onclick="showPage('dashboardPage')">Back to Dashboard</button>
+            </div>
+        </main>
+        <footer>
+            <p>@2025. All Rights Reserved</p>
+        </footer>
+    </div>
+
+    <!-- Forgot Password Page -->
+    <div id="forgotPage" style="display: none;">
+        <header>
+            <h1>Forgot Password</h1>
+        </header>
+        <main>
+            <div class="forgot-password-page">
+                <form id="forgotPasswordForm">
+                    <input type="email" id="forgotEmail" placeholder="Enter your email" required>
+                    <p class="error" id="forgotErrorMessage"></p>
+                    <p class="success" id="forgotSuccessMessage"></p>
+                    <button type="submit" id="forgotSubmitButton">Send OTP</button>
+                    <div id="forgotLoader" class="loader" style="display: none;"></div>
+                </form>
+                <button class="back-button" onclick="showPage('mainPage')">Back</button>
+            </div>
+        </main>
+        <footer>
+            <p>@2025. All Rights Reserved</p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+    <script>
+        // Show the selected page and hide others
+        function showPage(pageId) {
+            const pages = ['mainPage', 'registerPage', 'loginPage', 'dashboardPage', 'studentProfilePage', 'lecturersProfilePage', 'attendancePage', 'forgotPage', 'otpVerificationPage'];
+            pages.forEach(page => {
+                document.getElementById(page).style.display = page === pageId ? 'block' : 'none';
+            });
+
+            // Update dashboard username
+            if (pageId === 'dashboardPage') {
+                const username = localStorage.getItem('username');
+                document.getElementById('dashboardUsername').textContent = username;
+            }
+
+            // Load saved profile data if available
+            if (pageId === 'studentProfilePage') {
+                const studentName = localStorage.getItem('studentName');
+                const registrationNumber = localStorage.getItem('registrationNumber');
+                const age = localStorage.getItem('age');
+                const phoneNumber = localStorage.getItem('phoneNumber');
+                const email = localStorage.getItem('email');
+                const yearOfStudy = localStorage.getItem('yearOfStudy');
+                const year = localStorage.getItem('year');
+                const profilePicture = localStorage.getItem('profilePicture');
+
+                if (studentName) document.getElementById('studentName').value = studentName;
+                if (registrationNumber) document.getElementById('registrationNumber').value = registrationNumber;
+                if (age) document.getElementById('age').value = age;
+                if (phoneNumber) document.getElementById('phoneNumber').value = phoneNumber;
+                if (email) document.getElementById('email').value = email;
+                if (yearOfStudy) document.getElementById('yearOfStudy').value = yearOfStudy;
+                if (year) document.getElementById('year').value = year;
+                if (profilePicture) {
+                    document.getElementById('profilePictureDisplay').src = profilePicture;
+                    document.getElementById('profilePictureDisplay').style.display = 'block';
+                    document.getElementById('profilePicturePlaceholder').style.display = 'none';
+                }
+            }
+
+            // Load saved lecturer data if available
+            if (pageId === 'lecturersProfilePage') {
+                const lecturerName = localStorage.getItem('lecturerName');
+                const lecturerId = localStorage.getItem('lecturerId');
+                const department = localStorage.getItem('department');
+                const lecturerEmail = localStorage.getItem('lecturerEmail');
+
+                if (lecturerName) document.getElementById('lecturerName').value = lecturerName;
+                if (lecturerId) document.getElementById('lecturerId').value = lecturerId;
+                if (department) document.getElementById('department').value = department;
+                if (lecturerEmail) document.getElementById('lecturerEmail').value = lecturerEmail;
+            }
+        }
+
+        // Show Semester Units Table
+        function showUnitsTable() {
+            const unitsTableContainer = document.getElementById('unitsTableContainer');
+            unitsTableContainer.style.display = unitsTableContainer.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Preview Profile Picture
+        function previewProfilePicture(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('profilePictureDisplay');
+            const placeholder = document.getElementById('profilePicturePlaceholder');
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '';
+                preview.style.display = 'none';
+                placeholder.style.display = 'block';
+            }
+        }
+
+        // Register Form Submission
+        document.getElementById('registerForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('registerErrorMessage');
+            const successMessage = document.getElementById('registerSuccessMessage');
+            const submitButton = document.getElementById('registerSubmitButton');
+            const loader = document.getElementById('registerLoader');
+
+            // Show loader
+            submitButton.style.display = 'none';
+            loader.style.display = 'block';
+
+            // Password validation
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            if (!passwordRegex.test(password)) {
+                errorMessage.textContent = 'Password must be 8 characters long and include letters, numbers, and symbols.';
+                submitButton.style.display = 'block';
+                loader.style.display = 'none';
+                return;
+            }
+
+            // Simulate a delay for registration
+            setTimeout(() => {
+                // Save to localStorage
+                localStorage.setItem('username', username);
+                localStorage.setItem('password', password);
+
+                // Show success message
+                successMessage.textContent = 'Registration successful! Redirecting to Login...';
+                errorMessage.textContent = '';
+
+                // Redirect to login page
+                setTimeout(() => {
+                    showPage('loginPage');
+                }, 2000);
+            }, 2000);
+        });
+
+        // Login Form Submission
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            const errorMessage = document.getElementById('loginErrorMessage');
+            const successMessage = document.getElementById('loginSuccessMessage');
+            const submitButton = document.getElementById('loginSubmitButton');
+            const loader = document.getElementById('loginLoader');
+
+            // Show loader
+            submitButton.style.display = 'none';
+            loader.style.display = 'block';
+
+            // Simulate a delay for login
+            setTimeout(() => {
+                const savedUsername = localStorage.getItem('username');
+                const savedPassword = localStorage.getItem('password');
+
+                if (username === savedUsername && password === savedPassword) {
+                    successMessage.textContent = 'Login successful! Redirecting...';
+                    errorMessage.textContent = '';
+
+                    // Save "Remember Me" state
+                    if (rememberMe) {
+                        localStorage.setItem('rememberMe', 'true');
+                    } else {
+                        localStorage.removeItem('rememberMe');
+                    }
+
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        showPage('dashboardPage');
+                    }, 2000);
+                } else {
+                    errorMessage.textContent = 'Invalid username or password.';
+                    submitButton.style.display = 'block';
+                    loader.style.display = 'none';
+                }
+            }, 2000);
+        });
+
+        // Check "Remember Me" state
+        if (localStorage.getItem('rememberMe') === 'true') {
+            document.getElementById('loginUsername').value = localStorage.getItem('username');
+            document.getElementById('rememberMe').checked = true;
+        }
+
+        // Student Profile Form Submission
+        document.getElementById('studentProfileForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Get form values
+            const studentName = document.getElementById('studentName').value;
+            const registrationNumber = document.getElementById('registrationNumber').value;
+            const age = document.getElementById('age').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const email = document.getElementById('email').value;
+            const yearOfStudy = document.getElementById('yearOfStudy').value;
+            const year = document.getElementById('year').value;
+            const profilePicture = document.getElementById('profilePicture').files[0];
+
+            // Save to localStorage
+            localStorage.setItem('studentName', studentName);
+            localStorage.setItem('registrationNumber', registrationNumber);
+            localStorage.setItem('age', age);
+            localStorage.setItem('phoneNumber', phoneNumber);
+            localStorage.setItem('email', email);
+            localStorage.setItem('yearOfStudy', yearOfStudy);
+            localStorage.setItem('year', year);
+
+            // Save profile picture as a data URL
+            if (profilePicture) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    localStorage.setItem('profilePicture', e.target.result);
+                };
+                reader.readAsDataURL(profilePicture);
+            }
+
+            alert('Profile saved successfully!');
+            showPage('dashboardPage'); // Redirect to dashboard after saving
+        });
+
+        // Lecturers Profile Form Submission
+        document.getElementById('lecturersProfileForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Get form values
+            const lecturerName = document.getElementById('lecturerName').value;
+            const lecturerId = document.getElementById('lecturerId').value;
+            const department = document.getElementById('department').value;
+            const lecturerEmail = document.getElementById('lecturerEmail').value;
+
+            // Save to localStorage
+            localStorage.setItem('lecturerName', lecturerName);
+            localStorage.setItem('lecturerId', lecturerId);
+            localStorage.setItem('department', department);
+            localStorage.setItem('lecturerEmail', lecturerEmail);
+
+            alert('Lecturer profile saved successfully!');
+            showPage('dashboardPage'); // Redirect to dashboard after saving
+        });
+
+        // Generate QR Code
+        function generateQRCode() {
+            const qrCodeContainer = document.getElementById('qrCodeContainer');
+            qrCodeContainer.innerHTML = ''; // Clear previous QR code
+            const qrCode = new QRCode(qrCodeContainer, {
+                text: "https://lecturer-attendance-system.com/mark-attendance",
+                width: 128,
+                height: 128
+            });
+        }
+
+        // Logout Functionality
+        function logout() {
+            localStorage.removeItem('rememberMe');
+            showPage('mainPage');
+        }
+
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            const body = document.body;
+            body.dataset.theme = body.dataset.theme === 'dark' ? 'light' : 'dark';
+        }
+    </script>
+</body>
+</html>
